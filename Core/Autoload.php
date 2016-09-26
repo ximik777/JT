@@ -19,10 +19,11 @@ class Autoload
 
     public static function Autoload($class)
     {
+
         if (0 !== strpos($class, 'Twig')) {
             $file = ((strncmp($class, 'bundle', 6) === 0) ? DR : self::$vendor) . '/' . strtr($class, '\\', '/') . '.php';
         } else {
-            $file = dirname(__FILE__).'/../../'.str_replace(array('_', "\0"), array('/', ''), $class).'.php';
+            $file = self::$vendor.'/Twig/lib/'.str_replace(array('_', "\0"), array('/', ''), $class).'.php';
         }
 
         if (is_file($file))
