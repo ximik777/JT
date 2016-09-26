@@ -2,6 +2,8 @@
 
 namespace JT\Core;
 
+// test
+
 class MemcacheSocketServer
 {
     var $error_number;
