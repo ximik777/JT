@@ -26,7 +26,8 @@ class TelegramBot
         $this->config = (Object)array_merge($this->config, $config);
     }
 
-    private function request($data = array())
+
+    private function request($data = array(), $file = false)
     {
         if (!$data['method'])
             return false;
@@ -34,7 +35,11 @@ class TelegramBot
         $method = $data['method'];
         unset($data['method']);
 
-        $url = "/bot{$this->config->api_key}/{$method}" . (!empty($data) ? '?' . http_build_query($data) : '');
+        $url = ($file ? '/file' : '')."/bot{$this->config->api_key}/{$method}" . (!empty($data) ? '?' . http_build_query($data) : '');
+
+        if($file) {
+            return $this->config->api_url . $url;
+        }
 
         $json = file_get_contents($this->config->api_url . $url);
 
@@ -202,6 +207,27 @@ class TelegramBot
         }
 
         return $text;
+    }
+
+    public function getUserAvatar($tg_id) {
+
+        if(!$photos = $this->request(['method' => 'getUserProfilePhotos', 'user_id' => $tg_id])) {
+            return false;
+        }
+
+        if(!$file_id = $photos->result->photos[0][0]->file_id) {
+            return false;
+        }
+
+        if(!$tmp_path = $this->request(['method' => 'getFile', 'file_id' => $file_id])) {
+            return false;
+        }
+
+        if(!$path = $tmp_path->result->file_path) {
+            return false;
+        }
+
+        return $this->request(['method' => $path], true);
     }
 
 

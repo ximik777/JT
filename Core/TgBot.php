@@ -12,13 +12,13 @@ class TgBot
         self::$key = $key;
     }
 
-    private static function request($method, $data = array())
+    private static function request($method, $data = array(), $file = false)
     {
-        if(!self::$key){
+        if (!self::$key) {
             return false;
         }
 
-        $url = "/bot".self::$key."/{$method}" . (!empty($data) ? '?' . http_build_query($data) : '');
+        $url = ($file ? '/file' : '') . "/bot" . self::$key . "/{$method}" . (!empty($data) ? '?' . http_build_query($data) : '');
 
         $json = file_get_contents(self::API_URL . $url);
 
@@ -33,7 +33,7 @@ class TgBot
     {
         if (!$chat_id || !$text) return false;
 
-        if($key){
+        if ($key) {
             self::$key = $key;
         }
 
@@ -44,10 +44,32 @@ class TgBot
     {
         if (!$chat_id || !$sticker) return false;
 
-        if($key){
+        if ($key) {
             self::$key = $key;
         }
 
         return self::request('sendSticker', ['chat_id' => $chat_id, 'sticker' => $sticker]);
+    }
+
+    public function getUserAvatar($tg_id)
+    {
+
+        if (!$photos = $this->request(['method' => 'getUserProfilePhotos', 'user_id' => $tg_id])) {
+            return false;
+        }
+
+        if (!$file_id = $photos->result->photos[0][0]->file_id) {
+            return false;
+        }
+
+        if (!$tmp_path = $this->request(['method' => 'getFile', 'file_id' => $file_id])) {
+            return false;
+        }
+
+        if (!$path = $tmp_path->result->file_path) {
+            return false;
+        }
+
+        return $this->request(['method' => $path], true);
     }
 }
