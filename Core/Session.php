@@ -5,15 +5,22 @@ namespace JT\Core;
 class Session
 {
     protected static $instance;
-    protected $session_id;
+    protected $sid;
+    protected $ssid;
 
     protected $config = array(
-        'id' => 'remixsid',                      # PHPSESSID or your version
+        'sid' => 'remixsid',                     # PHPSESSID or your version
+        'sid_len' => 40,                         # Cookie session id key len
+
+        'ssid' => 'remixssid',
+        'exp' => 'remixexp',
+        'ssid_len' => 60,                        # Cookie session id key len
+
         'domain' => null,                        # example.com or .example.com default $_SERVER['HTTP_HOST']
         'path' => '/',                           # Cookie path
         'secure' => null,                        # Cookie secure
         'http_only' => true,                     # Cookie http only
-        'session_id_key_len' => 40,              # Cookie session id key len
+
         'memcache' => false,                     # false or tcp://127.0.0.1:11211?persistent=0&amp;weight=1&amp;timeout=1&amp;retry_interval=15
         'redis' => false,                        # false or tcp://127.0.0.1:6379?auth=123
     );
@@ -56,16 +63,26 @@ class Session
             session_save_path($this->config['redis']);
         }
 
-        if (isset($_COOKIE[$this->config['name']]) && preg_match('/^[a-zA-Z0-9]{' . $this->config['session_id_key_len'] . '}$/', $_COOKIE[$this->config['name']])) {
-            $this->session_id = $_COOKIE[$this->config['name']];
+        if (isset($_COOKIE[$this->config['sid']]) && preg_match('/^[a-zA-Z0-9]{' . $this->config['sid_len'] . '}$/', $_COOKIE[$this->config['sid']])) {
+            $this->sid = $_COOKIE[$this->config['sid']];
         } else {
-            $this->session_id = Hash::az09($this->config['session_id_key_len']);
-            session_id($this->session_id);
+            $this->sid = Hash::az09($this->config['sid_len']);
+            session_id($this->sid);
         }
 
-        session_name($this->config['name']);
+        session_name($this->config['sid']);
         session_set_cookie_params(0, $this->config['path'], $this->config['domain'], $this->config['secure'], $this->config['http_only']);
         session_start();
+    }
+
+    public static function lifeTime()
+    {
+        static $life_time;
+        if ($life_time) {
+            return $life_time;
+        }
+        $life_time = (int)ini_get('session.gc_maxlifetime');
+        return $life_time;
     }
 
     public static function get($key = '')
@@ -75,13 +92,15 @@ class Session
 
     public static function set($key, $value = null)
     {
-        if(is_array($key)){
-            foreach($key as $k => $v){
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
                 $_SESSION[$k] = $v;
             }
         } else {
             $_SESSION[$key] = $value;
         }
+
+        return true;
     }
 
     public static function del($key = '')
@@ -92,14 +111,53 @@ class Session
         return true;
     }
 
-    public static function session_id()
+    public static function id()
     {
         return session_id();
     }
 
-    public static function destroy()
+    public static function sid_is_exp()
     {
-        session_destroy();
+        return !!(isset($_COOKIE[self::$instance->config['exp']]));
     }
 
+    public static function sid_rm_exp()
+    {
+        return !!(isset($_COOKIE[self::$instance->config['exp']]));
+    }
+
+    public static function sid_get()
+    {
+        if (isset($_COOKIE[self::$instance->config['ssid']]) && preg_match('/^[a-zA-Z0-9]{' . self::$instance->config['ssid_len'] . '}$/', $_COOKIE[self::$instance->config['ssid']])) {
+            return $_COOKIE[self::$instance->config['ssid']];
+        }
+        return false;
+    }
+
+    public static function sid_set($time_life)
+    {
+        if (isset($_COOKIE[self::$instance->config['ssid']]) && preg_match('/^[a-zA-Z0-9]{' . self::$instance->config['ssid_len'] . '}$/', $_COOKIE[self::$instance->config['ssid']])) {
+            self::$instance->ssid = $_COOKIE[self::$instance->config['ssid']];
+        } else {
+            self::$instance->ssid = Hash::az09(self::$instance->config['ssid_len']);
+        }
+
+        return self::sid_expire($time_life);
+    }
+
+
+    public static function sid_expire($time_life)
+    {
+        if ($time_life <= 0) {
+            setcookie(self::$instance->config['exp'], '1', time() + $time_life, self::$instance->config['path'], self::$instance->config['domain'], self::$instance->config['secure'], self::$instance->config['http_only']);
+        }
+        setcookie(self::$instance->config['ssid'], self::$instance->ssid, $time_life ? time() + $time_life : 0, self::$instance->config['path'], self::$instance->config['domain'], self::$instance->config['secure'], self::$instance->config['http_only']);
+        return self::$instance->ssid;
+    }
+
+    public static function destroy()
+    {
+        self::sid_expire(-3600);
+        session_destroy();
+    }
 }

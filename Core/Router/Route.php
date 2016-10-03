@@ -92,13 +92,11 @@ class Route
         $param->action_name = $this->config['prefix']['action'] . $param->action_name;
         $param->bundle_path = "bundle\\{$param->bundle_name}";
         $param->template_path = $this->config['default']['template'];
-        //$param->controller_path = "{$param->bundle_path}\\controller\\{$param->controller_name}";
         $param->controller_path = $param->bundle_path . '\\' . ($this->config['tree']['controller'] ? $this->config['tree']['controller'].'\\': '') . $param->controller_name;
 
         if (class_exists("bundle\\General")) {
             call_user_func(["bundle\\General", "load"], $param);
         }
-
 
         if (class_exists($param->controller_path)) {
             $this->result = new $param->controller_path($param);

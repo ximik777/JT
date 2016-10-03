@@ -2,7 +2,6 @@
 
 namespace JT\Core;
 
-
 class Docx
 {
     var $tmp_dir = '/tmp/';
@@ -11,14 +10,13 @@ class Docx
     private $dirs = array();
     private $content = '';
 
-
     static function countPages($file)
     {
-        if(!is_file($file)){
+        if (!is_file($file)) {
             return false;
         }
 
-        if(!$app = (array)simplexml_load_file("zip://{$file}#docProps/app.xml")){
+        if (!$app = (array)simplexml_load_file("zip://{$file}#docProps/app.xml")) {
             return false;
         }
 
@@ -27,15 +25,15 @@ class Docx
 
     public static function getVariables($file)
     {
-        if(!is_file($file)){
+        if (!is_file($file)) {
             return false;
         }
 
-        if(!$content = file_get_contents("zip://{$file}#word/document.xml")){
+        if (!$content = file_get_contents("zip://{$file}#word/document.xml")) {
             return false;
         }
 
-        if(!preg_match_all('/#\[([A-Z0-9_]+)\]#/', $content, $data)){
+        if (!preg_match_all('/#\[([A-Z0-9_]+)\]#/', $content, $data)) {
             return false;
         }
 
@@ -124,7 +122,7 @@ class Docx
         $this->pack();
 
         $zip = new \ZipArchive;
-        if ($zip->open($path, \ZIPARCHIVE::CREATE) === TRUE) {
+        if ($zip->open($path, \ZipArchive::CREATE) === TRUE) {
             foreach ($this->files as $k) {
                 $zip->addFile($k, str_replace($this->tmp_dir, '', $k));
             }

@@ -17,4 +17,5 @@ class RouteParam
     var $view_path;
 
     var $template_path;
+    var $user_id;
 }
