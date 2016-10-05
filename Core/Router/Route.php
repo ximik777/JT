@@ -62,8 +62,7 @@ class Route
         $param->controller_name = $this->config['default']['controller'];
         $param->action_name = $this->config['default']['action'];
 
-        $request_uri = isset($request_uri) && !empty($request_uri) ?: $param->controller_name;
-        $request_uri = trim($request_uri, '/\\');
+        $request_uri = isset($request_uri) && !empty($request_uri) ? trim($request_uri, '/\\') : $param->controller_name;
         $path = explode("/", strtr($request_uri, '.', '/'));
 
         if (is_array($this->config['routes']) && isset($this->config['routes'][$request_uri])) {
