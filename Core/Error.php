@@ -22,11 +22,11 @@ class Error
         E_RECOVERABLE_ERROR => 'Recoverable Error'
     ];
 
-    static $display = '' .
-    '<div style="border:2px solid #F00; padding:3px; font-size:10px; %s">' .
-    '%s <b>[%s]</b><br>' .
-    '%s<br />[%s] - %s' .
-    '</div>';
+    static $display = '
+    <div style="border:2px solid #F00; padding:3px; font-size:10px; %s">
+    %s <b>[%s]</b><br>
+    %s<br />[%s] - %s
+    </div>';
 
     public static function Register($callback = null)
     {
