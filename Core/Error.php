@@ -46,7 +46,7 @@ class Error
 
     public static function error_handler($code, $message, $file, $line)
     {
-        $errType = self::$error_list[$code] ?? "Unknown error";
+        $errType = isset(self::$error_list[$code]) ? self::$error_list[$code] : "Unknown error";
 
         if (is_callable(self::$callback)) {
             call_user_func(self::$callback, $errType, $code, $message, $line, $file);
