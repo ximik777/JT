@@ -61,10 +61,12 @@ class Route
         $param->bundle_name = $this->config['default']['bundle'];
         $param->controller_name = $this->config['default']['controller'];
         $param->action_name = $this->config['default']['action'];
-        
+
         $request_uri = trim($request_uri, '/\\');
-        if(empty($request_uri)){
+        if (empty($request_uri)) {
             $request_uri = $param->controller_name;
+        } elseif (($pos = strpos($request_uri, '?')) !== false) {
+            $request_uri = substr($request_uri, 0, $pos);
         }
 
         $path = explode("/", strtr($request_uri, '.', '/'));
