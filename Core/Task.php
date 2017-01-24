@@ -26,28 +26,28 @@ class Task
     public static function add($type, $object_id, array $data, $delay = 0)
     {
         $data = json_encode($data);
-        if ($res = db::get_value_query("SELECT `data` FROM `billing`.`event` WHERE `type`=$ AND `object_id`=$ AND `date_processed` IS NULL ORDER BY `id` DESC LIMIT 1", [$type, $object_id])) {
+        if ($res = db::get_value_query("SELECT `data` FROM `ispdn_billing`.`event` WHERE `type`=$ AND `object_id`=$ AND `date_processed` IS NULL ORDER BY `id` DESC LIMIT 1", [$type, $object_id])) {
             if ($res === $data) {
                 return true;
             }
         }
 
-        return db::query_insert("INSERT INTO `billing`.`event` (`type`,`object_id`,`data`,`date_start`) VALUES ($,$,$,DATE_ADD(NOW(), INTERVAL $ SECOND))", [$type, $object_id, $data, $delay]);
+        return db::query_insert("INSERT INTO `ispdn_billing`.`event` (`type`,`object_id`,`data`,`date_start`) VALUES ($,$,$,DATE_ADD(NOW(), INTERVAL $ SECOND))", [$type, $object_id, $data, $delay]);
     }
 
     function deleteTask($task_id)
     {
-        return db::query("UPDATE `billing`.`event` SET `count_try`=`count_try`+1, `date_processed`=NOW() WHERE `id`=$ AND `date_processed` IS NULL LIMIT 1", $task_id);
+        return db::query("UPDATE `ispdn_billing`.`event` SET `count_try`=`count_try`+1, `date_processed`=NOW() WHERE `id`=$ AND `date_processed` IS NULL LIMIT 1", $task_id);
     }
 
     function delayQueue($type, $object_id, $delay = 0)
     {
-        return db::query("UPDATE `billing`.`event` SET `count_try`=`count_try`+1, `date_start`=DATE_ADD(NOW(), INTERVAL {$delay} SECOND) WHERE `type`=$ AND `object_id`=$ AND `date_processed` IS NULL", [$type, $object_id]);
+        return db::query("UPDATE `ispdn_billing`.`event` SET `count_try`=`count_try`+1, `date_start`=DATE_ADD(NOW(), INTERVAL {$delay} SECOND) WHERE `type`=$ AND `object_id`=$ AND `date_processed` IS NULL", [$type, $object_id]);
     }
 
     function deleteQueue($type, $object_id)
     {
-        return db::query("UPDATE `billing`.`event` SET `date_processed`=NOW() WHERE `type`=$ AND `object_id`=$ AND `date_processed` IS NULL", [$type, $object_id]);
+        return db::query("UPDATE `ispdn_billing`.`event` SET `date_processed`=NOW() WHERE `type`=$ AND `object_id`=$ AND `date_processed` IS NULL", [$type, $object_id]);
     }
 
     function _getQueue()
@@ -56,7 +56,7 @@ class Task
                       `type`,
                       `object_id`
                     FROM
-                      `billing`.`event`
+                      `ispdn_billing`.`event`
                     WHERE
                       (`date_start` < NOW() OR `date_start` IS NULL) AND
                       `date_processed` IS NULL
@@ -73,7 +73,7 @@ class Task
         $sql = "SELECT
                       *
                     FROM
-                      `billing`.`event`
+                      `ispdn_billing`.`event`
                     WHERE
                       `type` = $ AND
                       `object_id` = $ AND
